@@ -25,7 +25,7 @@ provider "nutanix" {
   insecure = true
   port     = 9440
 }
-
+ 
 data "nutanix_clusters" "clusters" {}
 locals {
      cluster_uuid = [
