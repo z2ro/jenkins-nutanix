@@ -5,13 +5,13 @@ parameters {
     string(name: 'Login', description: 'Login do Prism Element')
     password(name: 'Senha', description: 'Senha do Prism Element')
     string(name: 'VIP', description: 'IP do Cluster')
-    string(name: 'HOSTNAME', defaultValue: 'TESTE-JENKINS', description: 'Nome da VM')
+    string(name: 'HOSTNAME', defaultValue: 'WINOV-SRV01', description: 'Nome da VM')
+    string(name: 'DESCRICAO', defaultValue: 'wl5.small', description: 'Descrição da VM')
     string(name: 'CPU', defaultValue: '1', description: 'Número de vCPU')
-    string(name: 'MEM', defaultValue: '1024', description: 'RAM do servidor em MB')
-    choice(name: 'NIC', choices: ['DEVOPS', 'CLOUDLAN'], description: 'VLAN do Cliente')
+    string(name: 'MEM', defaultValue: '1', description: 'RAM do servidor em GB')
+    choice(name: 'NIC', choices: ['VLAN'], description: 'VLAN do Cliente')
     string(name: 'IP', defaultValue: '10.10.76.100', description: 'IP da VM')
-    choice(name: 'IMAGE', choices: ['CENTOS-7', 'UBUNTU-1804'], description: 'SO')
-    string(name: 'CLOUD', description: 'Script a rodar na VM')
+    choice(name: 'IMAGE', choices: ['TEMPLATE-CENTOS7', 'TEMPLATE-UBUNTU20', 'TEMPLATE-UBUNTU18', 'TEMPLATE-W2K19-ENG'], description: 'S.O')
 }
 stages {
 
@@ -25,9 +25,9 @@ stage('Definindo variáveis') {
         sh ("echo vcpu=\\\"${params.CPU}\\\" >> vars.tfvars")
         sh ("echo mem=\\\"${params.MEM}\\\" >> vars.tfvars")
         sh ("echo ip=\\\"${params.IP}\\\" >> vars.tfvars")
-        sh ("echo cloud=\\\"${params.CLOUD}\\\" >> vars.tfvars")
-        sh ("bash rimage.sh ${params.IMAGE}")
-        sh ("bash rnics.sh ${params.NIC}")
+        sh ("echo nic=\\\"${params.NIC}\\\" >> vars.tfvars")
+        sh ("echo image=\\\"${params.IMAGE}\\\" >> vars.tfvars")
+        sh ("echo description=\\\"${params.DESCRICAO}\\\" >> vars.tfvars")
         }
     }
 }
