@@ -7,7 +7,7 @@ variable ip             { }
 variable hostname       { }
 variable image          { }
 variable nic            { }
-variable cloud          { }
+variable description    { }
 
 terraform {
   required_providers {
@@ -19,13 +19,29 @@ terraform {
 }
 
 provider "nutanix" {
-  username = "${var.login}"
-  password = "${var.password}"
-  endpoint = "${var.vip}"
+  username = var.login
+  password = var.password
+  endpoint = var.vip
   insecure = true
   port     = 9440
 }
 
+data "nutanix_clusters" "clusters" {}
+locals {
+     cluster_uuid = [
+        for cluster in data.nutanix_clusters.clusters.entities :
+        cluster.metadata.uuid if cluster.service_list[0] != "PRISM_CENTRAL"
+        ][0]
+}
+
+data "nutanix_subnet" "network" {
+    subnet_name = var.nic
+}
+
+
+data "nutanix_image" "image" {
+    image_name = var.image
+}
 
 data "template_file" "cloud"{
         template = file("cloud-init")
@@ -33,22 +49,20 @@ data "template_file" "cloud"{
 
 #change count to deploy number of VMs
 resource "nutanix_virtual_machine" "terraform-deploy" {
- name = "${var.hostname}"
- description = "terraform-deploy"
- num_vcpus_per_socket = "${var.vcpu}"
+ name = var.hostname
+ description = var.description
+ num_vcpus_per_socket = var.vcpu
  num_sockets          = 1
- memory_size_mib      = "${var.mem}"
+ memory_size_mib      = var.mem * 1024
  guest_customization_cloud_init_user_data = base64encode("${(data.template_file.cloud.template)}")
-
-cluster_uuid = "000553fe-8616-4c8f-0000-0000000161c1"
+ cluster_uuid = local.cluster_uuid
 
 nutanix_guest_tools = {
         state = "ENABLED"
-        iso_mount_state = "MOUNTED"
 }
 
 nic_list {
-  subnet_uuid = "${var.nic}"
+  subnet_uuid = data.nutanix_subnet.network.id
    ip_endpoint_list {
         ip = "${var.ip}"
         type = "ASSIGNED"
@@ -58,7 +72,7 @@ nic_list {
 disk_list {
    data_source_reference = {
      kind = "image"
-     uuid = "${var.image}"
+     uuid = data.nutanix_image.image.id
        }
        }
 
