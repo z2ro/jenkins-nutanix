@@ -7,6 +7,7 @@ variable ip             { }
 variable hostname       { }
 variable image          { }
 variable nic            { }
+variable cloud          { }
 
 terraform {
   required_providers {
@@ -26,6 +27,10 @@ provider "nutanix" {
 }
 
 
+data "template_file" "cloud"{
+        template = file("cloud-init")
+}
+
 #change count to deploy number of VMs
 resource "nutanix_virtual_machine" "terraform-deploy" {
  name = "${var.hostname}"
@@ -33,8 +38,14 @@ resource "nutanix_virtual_machine" "terraform-deploy" {
  num_vcpus_per_socket = "${var.vcpu}"
  num_sockets          = 1
  memory_size_mib      = "${var.mem}"
+ guest_customization_cloud_init_user_data = base64encode("${(data.template_file.cloud.template)}")
 
 cluster_uuid = "000553fe-8616-4c8f-0000-0000000161c1"
+
+nutanix_guest_tools = {
+        state = "ENABLED"
+        iso_mount_state = "MOUNTED"
+}
 
 nic_list {
   subnet_uuid = "${var.nic}"
