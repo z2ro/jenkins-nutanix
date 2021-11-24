@@ -11,17 +11,9 @@ parameters {
     choice(name: 'NIC', choices: ['DEVOPS', 'CLOUDLAN'], description: 'VLAN do Cliente')
     string(name: 'IP', defaultValue: '10.10.76.100', description: 'IP da VM')
     choice(name: 'IMAGE', choices: ['CENTOS-7', 'UBUNTU-1804'], description: 'SO')
+    string(name: 'CLOUD', description: 'Script a rodar na VM')
 }
 stages {
-stage('Configurando Terraform') {
-steps {
-script {
-def tfHome = tool name: 'terraform'
-env.PATH = "${tfHome}:${env.PATH}"
-}
-sh 'terraform --version'
-}
-}
 
 stage('Definindo variáveis') {
     steps {
@@ -33,6 +25,7 @@ stage('Definindo variáveis') {
         sh ("echo vcpu=\\\"${params.CPU}\\\" >> vars.tfvars")
         sh ("echo mem=\\\"${params.MEM}\\\" >> vars.tfvars")
         sh ("echo ip=\\\"${params.IP}\\\" >> vars.tfvars")
+        sh ("echo cloud=\\\"${params.CLOUD}\\\" >> vars.tfvars")
         sh ("bash rimage.sh ${params.IMAGE}")
         sh ("bash rnics.sh ${params.NIC}")
         }
@@ -52,12 +45,5 @@ sh 'rm -rf terraform.tfstate'
 }
 }
 
-stage('Configurando NGT') {
-    steps {
-        dir ('nutanix'){
-          sh ("bash apiv2/vm-get-uuid.sh ${params.HOSTNAME}")
-        }
-    }
-}
 }
 }
