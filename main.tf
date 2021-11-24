@@ -38,7 +38,6 @@ data "nutanix_subnet" "network" {
     subnet_name = var.nic
 }
 
-
 data "nutanix_image" "image" {
     image_name = var.image
 }
@@ -64,7 +63,7 @@ nutanix_guest_tools = {
 nic_list {
   subnet_uuid = data.nutanix_subnet.network.id
    ip_endpoint_list {
-        ip = "${var.ip}"
+        ip = var.ip
         type = "ASSIGNED"
         }
   }
