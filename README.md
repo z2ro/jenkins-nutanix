@@ -8,6 +8,14 @@ A repository for a Nutanix pipeline with Jenkins.
 
 terraform plan -out=tfplan -input=false -var-file=vars.tfvars
 
+* **Init**
+
+terraform init -input=false
+
+* **Apply**
+
+terraform apply -input=false tfplan
+
 ## Getting Started
   1. Create a Jenkins Pipeline
   2. Install terraform 1.0.11 on jenkins VM
