@@ -1,0 +1,57 @@
+#cloud-config
+
+write_files:
+- content: |
+    [kubernetes]
+    name=Kubernetes
+    baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    enabled=1
+    gpgcheck=1
+    repo_gpgcheck=1
+    gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+  path: /etc/yum.repos.d/kubernetes.repo
+
+runcmd:
+- yum -y install epel-release vim git curl wget kubelet kubeadm kubectl --disableexcludes=kubernetes
+- setenforce 0
+- sed -i 's/^SELINUX=.*/SELINUX=permissive/g' /etc/selinux/config
+- sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+- swapoff -a
+- modprobe overlay
+- modprobe br_netfilter
+
+write_files:
+- content: |
+    net.bridge.bridge-nf-call-ip6tables = 1
+    net.bridge.bridge-nf-call-iptables = 1
+    net.ipv4.ip_forward = 1
+  path: /etc/sysctl.d/kubernetes.conf
+
+runcmd:
+- sysctl --system
+- yum install -y yum-utils device-mapper-persistent-data lvm2
+- yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+- yum install -y docker-ce docker-ce-cli containerd.io
+- mkdir -p /etc/systemd/system/docker.service.d
+
+write_files:
+- content: |
+    {
+      "exec-opts": ["native.cgroupdriver=systemd"],
+      "log-driver": "json-file",
+       "log-opts": {
+         "max-size": "100m"
+    },
+     "storage-driver": "overlay2",
+     "storage-opts": [
+       "overlay2.override_kernel_check=true"]
+    }
+  path: /etc/docker/daemon.json
+
+runcmd:
+- systemctl daemon-reload
+- systemctl restart docker
+- systemctl enable docker
+- systemctl stop firewalld
+- systemctl disable firewalld
+- systemctl enable kubelet
