@@ -1,4 +1,4 @@
-# Jenkins pipeline for nutanix
+# Jenkins pipeline with terraform for nutanix
 
 A repository for a Nutanix pipeline with Jenkins. 
 
