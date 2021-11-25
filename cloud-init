@@ -1,3 +1,12 @@
 #cloud-config
+
+ssh_pwauth: True
+
 runcmd:
+- hostnamectl set-hostname ${vm_name}
 - yum update -y
+
+password: ${vm_password}
+
+chpasswd:
+  expire: False
