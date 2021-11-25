@@ -8,6 +8,8 @@ variable hostname       { }
 variable image          { }
 variable nic            { }
 variable description    { }
+variable vm_name        { }
+variable vm_password    { }
 
 terraform {
   required_providers {
@@ -25,7 +27,7 @@ provider "nutanix" {
   insecure = true
   port     = 9440
 }
- 
+
 data "nutanix_clusters" "clusters" {}
 locals {
      cluster_uuid = [
@@ -44,6 +46,10 @@ data "nutanix_image" "image" {
 
 data "template_file" "cloud"{
         template = file("cloud-init")
+        vars = {
+                vm_name = var.vm_name
+                vm_password = var.vm_password
+        }
 }
 
 #change count to deploy number of VMs
@@ -53,7 +59,7 @@ resource "nutanix_virtual_machine" "terraform-deploy" {
  num_vcpus_per_socket = var.vcpu
  num_sockets          = 1
  memory_size_mib      = var.mem * 1024
- guest_customization_cloud_init_user_data = base64encode("${(data.template_file.cloud.template)}")
+ guest_customization_cloud_init_user_data = base64encode("${(data.template_file.cloud.rendered)}")
  cluster_uuid = local.cluster_uuid
 
 nutanix_guest_tools = {
