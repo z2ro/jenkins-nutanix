@@ -52,7 +52,6 @@ data "template_file" "cloud"{
         }
 }
 
-#change count to deploy number of VMs
 resource "nutanix_virtual_machine" "terraform-deploy" {
  name = var.hostname
  description = var.description
@@ -61,10 +60,8 @@ resource "nutanix_virtual_machine" "terraform-deploy" {
  memory_size_mib      = var.mem * 1024
  guest_customization_cloud_init_user_data = base64encode("${(data.template_file.cloud.rendered)}")
  cluster_uuid = local.cluster_uuid
-
-nutanix_guest_tools = {
-        state = "ENABLED"
-}
+ nutanix_guest_tools = {
+        state = "ENABLED" }
 
 nic_list {
   subnet_uuid = data.nutanix_subnet.network.id
