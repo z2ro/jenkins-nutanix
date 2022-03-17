@@ -55,8 +55,8 @@ data "template_file" "cloud"{
 resource "nutanix_virtual_machine" "terraform-deploy" {
  name = var.hostname
  description = var.description
- num_vcpus_per_socket = var.vcpu
- num_sockets          = 1
+ num_vcpus_per_socket = 1
+ num_sockets          = var.vcpu
  memory_size_mib      = var.mem * 1024
  guest_customization_cloud_init_user_data = base64encode("${(data.template_file.cloud.rendered)}")
  cluster_uuid = local.cluster_uuid
